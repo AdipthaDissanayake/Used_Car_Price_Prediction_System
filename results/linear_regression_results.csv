@@ -1,0 +1,2 @@
+Model,Version,Parameters,CV_R2,CV_R2_Std,CV_MAE,CV_RMSE,Test_R2,Test_MAE,Test_RMSE,Test_MAE_Dollar,Test_RMSE_Dollar,Observation
+Linear Regression,Baseline,default (fit_intercept=True),0.609993026109486,0.0140911003540798,0.4018807040221105,0.5271455532337941,0.5992880711054454,0.42196936325427203,0.5413609912584344,19667.17083420278,44886.722586315635,Simple linear parametric baseline. Fast and interpretable; bounded by linear assumption.

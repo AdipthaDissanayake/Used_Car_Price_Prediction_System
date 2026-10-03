@@ -1,0 +1,14 @@
+Feature,Importance
+milage,0.741420271464166
+car_age,0.11032333097587557
+mileage_per_year,0.08418349592403278
+is_luxury_brand,0.05550842402503252
+fuel_Gasoline,0.005210217456867972
+has_accident,0.0014003435814929827
+fuel_E85 Flex Fuel,0.0010132112943202559
+fuel_Electric,0.0009407052782119392
+is_manual,0.0
+is_clean_title,0.0
+fuel_Hybrid,0.0
+fuel_Other,0.0
+fuel_Plug-In Hybrid,0.0
