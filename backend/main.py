@@ -1,6 +1,7 @@
 """
 Flask REST API Backend for Used Car Price Prediction System
-Includes MySQL Database persistence and Google Authentication
+Includes MySQL Database persistence, User Authentication (Register/Login via JWT),
+User-specific Prediction History, and History Deletion capabilities.
 Stage 9: Backend Development - IT3051
 """
 
@@ -20,6 +21,7 @@ if repo_root not in sys.path:
 from backend.schemas import validate_car_payload, ValidationError
 from backend.service import get_service, LUXURY_BRANDS, VALID_FUEL_TYPES
 from backend.database import get_db_manager
+from backend.auth import create_access_token, verify_access_token
 
 frontend_dir = os.path.join(repo_root, 'frontend')
 
@@ -32,17 +34,23 @@ try:
 except Exception as e:
     print(f"[DB Warning] Startup database check: {e}")
 
-GOOGLE_CLIENT_ID = os.getenv(
-    'GOOGLE_CLIENT_ID',
-    '53736675578-6f3dvt55v1i50nnrsmg6rktvr1l7jhh6.apps.googleusercontent.com'
-)
+
+def get_current_user_from_request():
+    """Extract and verify user from Authorization Bearer token header."""
+    auth_header = request.headers.get('Authorization', '')
+    if auth_header.startswith('Bearer '):
+        token = auth_header.split(' ')[1].strip()
+        decoded = verify_access_token(token)
+        if decoded:
+            return decoded
+    return None
 
 
 @app.after_request
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
-    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,OPTIONS'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,DELETE,OPTIONS'
     return response
 
 
@@ -73,100 +81,106 @@ def health_check():
         "status": status,
         "database": db_type,
         "database_connected": True,
+        "auth_system": "JWT",
         "model": model_name,
-        "version": "1.0.0",
+        "version": "2.0.0",
         "service": "Used Car Price Prediction System API"
     }), 200
 
 
 @app.route('/metadata', methods=['GET'])
 def get_metadata():
-    """Return available brands, fuel types, google client id, and model metrics."""
+    """Return available brands, fuel types, and champion model metrics."""
     service = get_service()
     return jsonify({
         "luxury_brands": LUXURY_BRANDS,
         "valid_fuel_types": VALID_FUEL_TYPES,
-        "google_client_id": GOOGLE_CLIENT_ID,
         "model_performance": service.metadata
     }), 200
 
 
-@app.route('/api/auth/google', methods=['POST', 'OPTIONS'])
-def google_auth():
-    """Verify Google OAuth credential and log or update user in database."""
+# =========================================================================
+# User Authentication Endpoints (Register / Login / Profile)
+# =========================================================================
+
+@app.route('/api/auth/register', methods=['POST', 'OPTIONS'])
+def register():
+    """Register a new user account with email and password."""
     if request.method == 'OPTIONS':
         return '', 204
 
     data = request.get_json(silent=True) or {}
-    token = data.get('credential')
-    user_payload = data.get('user')
+    email = data.get('email', '').strip()
+    password = data.get('password', '')
+    name = data.get('name', '').strip()
 
-    google_id = None
-    email = None
-    name = None
-    picture = None
+    if not email or '@' not in email or '.' not in email:
+        return jsonify({"error": "Validation Error", "message": "A valid email address is required."}), 400
 
-    # Option 1: Verify token via google-auth library
-    if token:
-        try:
-            from google.oauth2 import id_token
-            from google.auth.transport import requests as google_requests
-            id_info = id_token.verify_oauth2_token(
-                token,
-                google_requests.Request(),
-                GOOGLE_CLIENT_ID
-            )
-            google_id = id_info.get('sub')
-            email = id_info.get('email')
-            name = id_info.get('name')
-            picture = id_info.get('picture')
-        except Exception as e:
-            print(f"[Auth Notice] Token verification fallback: {e}")
-            # If network or local clock prevents remote cert check, check provided user payload
-            if user_payload:
-                google_id = user_payload.get('sub') or user_payload.get('id')
-                email = user_payload.get('email')
-                name = user_payload.get('name')
-                picture = user_payload.get('picture')
+    if not password or len(password) < 6:
+        return jsonify({"error": "Validation Error", "message": "Password must be at least 6 characters long."}), 400
 
-    elif user_payload:
-        google_id = user_payload.get('sub') or user_payload.get('id')
-        email = user_payload.get('email')
-        name = user_payload.get('name')
-        picture = user_payload.get('picture')
+    user_record, err = db_manager.register_user(email=email, password=password, name=name)
+    if err:
+        return jsonify({"error": "Registration Error", "message": err}), 400
 
-    if not google_id or not email:
-        return jsonify({
-            "error": "Authentication Failed",
-            "message": "Valid Google ID token or user profile required."
-        }), 400
-
-    user_record = db_manager.save_or_update_user(
-        google_id=google_id,
-        email=email,
-        name=name,
-        picture=picture
-    )
-
-    if not user_record:
-        return jsonify({
-            "error": "Database Error",
-            "message": "Could not persist user to database."
-        }), 500
-
+    token = create_access_token(user_record)
     return jsonify({
         "status": "success",
-        "message": "Authenticated successfully with Google",
+        "message": "Account created successfully.",
+        "token": token,
+        "user": user_record
+    }), 201
+
+
+@app.route('/api/auth/login', methods=['POST', 'OPTIONS'])
+def login():
+    """Authenticate user with email and password."""
+    if request.method == 'OPTIONS':
+        return '', 204
+
+    data = request.get_json(silent=True) or {}
+    email = data.get('email', '').strip()
+    password = data.get('password', '')
+
+    if not email or not password:
+        return jsonify({"error": "Validation Error", "message": "Email and password are required."}), 400
+
+    user_record, err = db_manager.authenticate_user(email=email, password=password)
+    if err or not user_record:
+        return jsonify({"error": "Unauthorized", "message": err or "Invalid email or password."}), 401
+
+    token = create_access_token(user_record)
+    return jsonify({
+        "status": "success",
+        "message": "Signed in successfully.",
+        "token": token,
         "user": user_record
     }), 200
 
 
+@app.route('/api/auth/me', methods=['GET'])
+def get_me():
+    """Return profile of currently authenticated user."""
+    user = get_current_user_from_request()
+    if not user:
+        return jsonify({"error": "Unauthorized", "message": "Valid authentication token required."}), 401
+    return jsonify({"status": "success", "user": user}), 200
+
+
+# =========================================================================
+# Prediction & User-Specific History Endpoints (Query & Deletion)
+# =========================================================================
+
 @app.route('/api/predictions/history', methods=['GET'])
 def get_history():
-    """Retrieve recent predictions from database."""
-    user_id = request.args.get('user_id', type=int)
-    limit = request.args.get('limit', default=10, type=int)
-    history = db_manager.get_recent_predictions(user_id=user_id, limit=limit)
+    """Retrieve valuation history strictly for the authenticated user."""
+    user = get_current_user_from_request()
+    if not user:
+        return jsonify({"status": "success", "count": 0, "data": []}), 200
+
+    limit = request.args.get('limit', default=20, type=int)
+    history = db_manager.get_user_predictions(user_id=int(user['id']), limit=limit)
     return jsonify({
         "status": "success",
         "count": len(history),
@@ -174,9 +188,44 @@ def get_history():
     }), 200
 
 
+@app.route('/api/predictions/history/<int:log_id>', methods=['DELETE', 'OPTIONS'])
+def delete_single_history(log_id):
+    """Delete an individual valuation history item owned by current user."""
+    if request.method == 'OPTIONS':
+        return '', 204
+
+    user = get_current_user_from_request()
+    if not user:
+        return jsonify({"error": "Unauthorized", "message": "Sign in required to delete history."}), 401
+
+    deleted = db_manager.delete_prediction_log(log_id=log_id, user_id=int(user['id']))
+    if not deleted:
+        return jsonify({"error": "Not Found", "message": "Record not found or not owned by user."}), 404
+
+    return jsonify({"status": "success", "message": f"Prediction #{log_id} deleted successfully."}), 200
+
+
+@app.route('/api/predictions/history', methods=['DELETE', 'OPTIONS'])
+def clear_all_history():
+    """Clear all valuation history for the authenticated user."""
+    if request.method == 'OPTIONS':
+        return '', 204
+
+    user = get_current_user_from_request()
+    if not user:
+        return jsonify({"error": "Unauthorized", "message": "Sign in required to clear history."}), 401
+
+    count = db_manager.clear_user_predictions(user_id=int(user['id']))
+    return jsonify({
+        "status": "success",
+        "message": f"Cleared {count} valuation records from your history.",
+        "deleted_count": count
+    }), 200
+
+
 @app.route('/predict', methods=['POST', 'OPTIONS'])
 def predict():
-    """Handle car price prediction request and log to database."""
+    """Handle vehicle valuation request and log to user account if authenticated."""
     if request.method == 'OPTIONS':
         return '', 204
 
@@ -204,22 +253,18 @@ def predict():
         service = get_service()
         result = service.predict(cleaned_payload)
 
-        # Log to database
-        user_id = data.get('user_id')
-        try:
-            if user_id:
-                user_id = int(user_id)
-        except (ValueError, TypeError):
-            user_id = None
-
-        db_log = db_manager.log_prediction(
-            payload=cleaned_payload,
-            predicted_price=result['predicted_price'],
-            log_price=result['log_price'],
-            user_id=user_id
-        )
-        if db_log:
-            result['log_id'] = db_log.get('id')
+        # Attach to authenticated user if signed in
+        token_user = get_current_user_from_request()
+        if token_user and token_user.get('id'):
+            user_id = int(token_user.get('id'))
+            db_log = db_manager.log_prediction(
+                payload=cleaned_payload,
+                predicted_price=result['predicted_price'],
+                log_price=result['log_price'],
+                user_id=user_id
+            )
+            if db_log:
+                result['log_id'] = db_log.get('id')
 
         return jsonify({
             "status": "success",
@@ -237,6 +282,6 @@ if __name__ == '__main__':
     print("=" * 60)
     print(f"Used Car Price Prediction Backend starting on http://localhost:{port}")
     print(f"Database: {os.getenv('DATABASE_URL')}")
-    print(f"Google Client ID: {GOOGLE_CLIENT_ID}")
+    print("Authentication: Email/Password JWT")
     print("=" * 60)
     app.run(host='0.0.0.0', port=port, debug=False)

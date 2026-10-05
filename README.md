@@ -100,12 +100,12 @@ pip install scikit-learn pandas numpy matplotlib seaborn flask pytest joblib pym
 The system loads configurations automatically from `.env`:
 ```ini
 DATABASE_URL=mysql+pymysql://finassist_app:root@localhost:3306/used_car_price_db
-GOOGLE_CLIENT_ID=53736675578-6f3dvt55v1i50nnrsmg6rktvr1l7jhh6.apps.googleusercontent.com
-SECRET_KEY=used_car_price_prediction_secret_key_2026
+JWT_SECRET_KEY=eONnP6QykYwhnAw_7Dq612Sj-io9UfwUV1wFXJMNF6QiIMAmFzmfLHOHsXBQgZ8FramcE5DQoBI6LiHFIczorw
 PORT=5000
 ```
-- **Database**: Connects to MySQL (`used_car_price_db`) with automatic table creation (`users` and `prediction_logs`). If MySQL is offline, it gracefully falls back to local SQLite so the system never crashes.
-- **Authentication**: Integrates Google Identity Services for one-tap and pop-up sign-in. Authenticated user sessions are stored in the database alongside their vehicle prediction history.
+- **Database**: Connects to MySQL (`used_car_price_db`) with automatic table creation (`users` and `prediction_logs`). If MySQL is offline, it gracefully falls back to local SQLite.
+- **Authentication**: JWT-based authentication with secure password hashing (`werkzeug.security`).
+- **Valuation History**: Valuation history is stored strictly per authenticated user. Users can inspect past valuations, reload past vehicle specs into the form, delete individual history records, or clear their entire history with one click.
 
 ---
 
