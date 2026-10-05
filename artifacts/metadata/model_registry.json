@@ -1,0 +1,11 @@
+{
+  "champion": "Gradient Boosting Regressor",
+  "model_path": "artifacts/models/final_model.joblib",
+  "status": "production_ready",
+  "supported_models": [
+    "Linear Regression",
+    "Decision Tree",
+    "Random Forest",
+    "Gradient Boosting"
+  ]
+}

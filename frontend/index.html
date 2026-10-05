@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Used Car Price Prediction System | IT3051</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Identity Services SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation / Auth Bar -->
+        <div class="top-nav">
+            <div class="nav-brand">
+                <span class="brand-dot"></span>
+                <span>UsedCarPrice AI</span>
+            </div>
+            <div class="auth-wrapper" id="auth-wrapper">
+                <!-- Logged Out State -->
+                <div id="google-login-container" class="google-login-box">
+                    <div id="g_id_onload"
+                         data-client_id="53736675578-6f3dvt55v1i50nnrsmg6rktvr1l7jhh6.apps.googleusercontent.com"
+                         data-callback="handleGoogleCredentialResponse"
+                         data-auto_prompt="false">
+                    </div>
+                    <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="outline" data-text="signin_with" data-size="medium"></div>
+                </div>
+
+                <!-- Logged In State -->
+                <div id="user-profile-box" class="user-profile-box" style="display: none;">
+                    <img id="user-avatar" class="user-avatar" src="" alt="User Avatar">
+                    <div class="user-info">
+                        <span id="user-name" class="user-name">User</span>
+                        <span id="user-email" class="user-email">email@example.com</span>
+                    </div>
+                    <button type="button" id="logout-btn" class="btn-logout" title="Sign Out">Sign Out</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="badge-tag">IT3051 Machine Learning System</div>
+                <h1>Used Car Price Prediction</h1>
+                <p class="subtitle">AI-Powered Valuation Engine powered by Gradient Boosting & Random Forest Regressors with MySQL Database & Google Auth</p>
+            </div>
+        </header>
+
+        <!-- Main Layout -->
+        <main class="main-content">
+            <!-- Input Form Card -->
+            <section class="card form-card">
+                <div class="card-header">
+                    <h2>Vehicle Specifications</h2>
+                    <p>Enter the details below to compute an empirical market value valuation.</p>
+                </div>
+
+                <form id="prediction-form" novalidate>
+                    <div class="form-grid">
+                        <!-- Brand -->
+                        <div class="form-group">
+                            <label for="brand">Make / Brand <span class="required">*</span></label>
+                            <select id="brand" name="brand" required>
+                                <option value="" disabled selected>Select vehicle make</option>
+                                <optgroup label="Luxury & Prestige Brands">
+                                    <option value="Porsche">Porsche</option>
+                                    <option value="BMW">BMW</option>
+                                    <option value="Mercedes-Benz">Mercedes-Benz</option>
+                                    <option value="Audi">Audi</option>
+                                    <option value="Lexus">Lexus</option>
+                                    <option value="Land Rover">Land Rover</option>
+                                    <option value="Cadillac">Cadillac</option>
+                                    <option value="Tesla">Tesla</option>
+                                    <option value="Genesis">Genesis</option>
+                                    <option value="Volvo">Volvo</option>
+                                    <option value="Jaguar">Jaguar</option>
+                                    <option value="Maserati">Maserati</option>
+                                    <option value="Bentley">Bentley</option>
+                                    <option value="Ferrari">Ferrari</option>
+                                    <option value="Lamborghini">Lamborghini</option>
+                                </optgroup>
+                                <optgroup label="Mainstream Brands">
+                                    <option value="Toyota">Toyota</option>
+                                    <option value="Ford">Ford</option>
+                                    <option value="Chevrolet">Chevrolet</option>
+                                    <option value="Honda">Honda</option>
+                                    <option value="Nissan">Nissan</option>
+                                    <option value="Jeep">Jeep</option>
+                                    <option value="GMC">GMC</option>
+                                    <option value="Dodge">Dodge</option>
+                                    <option value="Subaru">Subaru</option>
+                                    <option value="Hyundai">Hyundai</option>
+                                    <option value="Kia">Kia</option>
+                                    <option value="Mazda">Mazda</option>
+                                    <option value="Volkswagen">Volkswagen</option>
+                                    <option value="RAM">RAM</option>
+                                </optgroup>
+                            </select>
+                            <span class="field-error" id="error-brand"></span>
+                        </div>
+
+                        <!-- Model Year -->
+                        <div class="form-group">
+                            <label for="model_year">Model Year <span class="required">*</span></label>
+                            <input type="number" id="model_year" name="model_year" min="1990" max="2026" value="2020" placeholder="e.g. 2020" required>
+                            <span class="field-helper" id="year-helper">Vehicle Age: 6 years</span>
+                            <span class="field-error" id="error-model_year"></span>
+                        </div>
+
+                        <!-- Mileage -->
+                        <div class="form-group">
+                            <label for="milage">Odometer (Miles) <span class="required">*</span></label>
+                            <input type="number" id="milage" name="milage" min="0" max="1000000" step="100" value="45000" placeholder="e.g. 45000" required>
+                            <span class="field-helper" id="mileage-helper">Annual Usage: ~7,500 mi/yr</span>
+                            <span class="field-error" id="error-milage"></span>
+                        </div>
+
+                        <!-- Transmission -->
+                        <div class="form-group">
+                            <label for="transmission">Transmission <span class="required">*</span></label>
+                            <select id="transmission" name="transmission" required>
+                                <option value="Automatic" selected>Automatic / A/T</option>
+                                <option value="Manual">Manual / 6-Speed M/T</option>
+                            </select>
+                            <span class="field-error" id="error-transmission"></span>
+                        </div>
+
+                        <!-- Clean Title -->
+                        <div class="form-group">
+                            <label for="clean_title">Title Status <span class="required">*</span></label>
+                            <select id="clean_title" name="clean_title" required>
+                                <option value="Yes" selected>Clean Title (Verified)</option>
+                                <option value="No">Non-Clean / Rebuilt / Salvage Title</option>
+                            </select>
+                            <span class="field-error" id="error-clean_title"></span>
+                        </div>
+
+                        <!-- Accident History -->
+                        <div class="form-group">
+                            <label for="accident">Accident History <span class="required">*</span></label>
+                            <select id="accident" name="accident" required>
+                                <option value="None reported" selected>No Accidents or Damage Reported</option>
+                                <option value="At least 1 accident or damage reported">At least 1 Accident or Damage Reported</option>
+                            </select>
+                            <span class="field-error" id="error-accident"></span>
+                        </div>
+
+                        <!-- Fuel Type -->
+                        <div class="form-group full-width">
+                            <label for="fuel_type">Fuel Type <span class="required">*</span></label>
+                            <select id="fuel_type" name="fuel_type" required>
+                                <option value="Gasoline" selected>Gasoline</option>
+                                <option value="Hybrid">Hybrid</option>
+                                <option value="Electric">Electric</option>
+                                <option value="Plug-In Hybrid">Plug-In Hybrid</option>
+                                <option value="E85 Flex Fuel">E85 Flex Fuel</option>
+                                <option value="Diesel">Diesel</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <span class="field-error" id="error-fuel_type"></span>
+                        </div>
+                    </div>
+
+                    <!-- Alert message container -->
+                    <div id="form-alert" class="alert-box" style="display: none;"></div>
+
+                    <!-- Submit Button -->
+                    <div class="form-actions">
+                        <button type="submit" id="submit-btn" class="btn btn-primary">
+                            <span class="btn-text">Estimate Market Value</span>
+                            <span class="btn-spinner" style="display: none;"></span>
+                        </button>
+                        <button type="button" id="reset-btn" class="btn btn-secondary">Reset</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Results Card -->
+            <section class="card results-card" id="results-section">
+                <div class="card-header">
+                    <h2>Valuation Summary</h2>
+                    <p>Machine Learning Prediction Breakdown</p>
+                </div>
+
+                <div id="results-placeholder" class="results-empty">
+                    <div class="empty-icon">🚗</div>
+                    <h3>No Valuation Calculated</h3>
+                    <p>Fill out the vehicle specifications and click "Estimate Market Value" to view the predicted price.</p>
+                </div>
+
+                <div id="results-content" style="display: none;">
+                    <div class="price-display">
+                        <span class="price-label">Estimated Market Value</span>
+                        <h2 class="price-value" id="display-price">$0</h2>
+                        <div class="price-range">
+                            <span>90% Confidence Interval:</span>
+                            <strong id="display-range">$0 - $0</strong>
+                        </div>
+                    </div>
+
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <span class="metric-title">Model Architecture</span>
+                            <span class="metric-value" id="display-model">Gradient Boosting</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-title">Test R² Score</span>
+                            <span class="metric-value highlight" id="display-r2">0.6619</span>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-title">Target Log Price</span>
+                            <span class="metric-value" id="display-log">10.45</span>
+                        </div>
+                    </div>
+
+                    <div class="insights-container">
+                        <h3>Model Insights & Influencing Factors</h3>
+                        <ul id="insights-list" class="insights-list">
+                            <!-- Populated dynamically -->
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Database History Section -->
+                <div class="history-container" id="history-container">
+                    <div class="history-header">
+                        <h3>Saved Database Valuations</h3>
+                        <button type="button" id="refresh-history-btn" class="btn-text-link">Refresh</button>
+                    </div>
+                    <div id="history-list" class="history-list">
+                        <div class="history-empty">No valuations recorded yet.</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>IT3051 Fundamentals of Data Mining & Machine Learning | Mini Project 2026</p>
+            <p class="footer-note">MySQL Database Connected (<code>used_car_price_db</code>) & Google OAuth Active.</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
