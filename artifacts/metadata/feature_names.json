@@ -1,0 +1,17 @@
+{
+  "features": [
+    "car_age",
+    "milage",
+    "mileage_per_year",
+    "is_luxury_brand",
+    "is_manual",
+    "is_clean_title",
+    "has_accident",
+    "fuel_E85 Flex Fuel",
+    "fuel_Electric",
+    "fuel_Gasoline",
+    "fuel_Hybrid",
+    "fuel_Other",
+    "fuel_Plug-In Hybrid"
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "num_samples_total": 4008,
+  "num_train_samples": 3206,
+  "num_test_samples": 802,
+  "target_variable": "log_price",
+  "target_formula": "log1p(price)",
+  "target_inverse_formula": "expm1(log_price)",
+  "feature_count": 13,
+  "feature_names": [
+    "car_age",
+    "milage",
+    "mileage_per_year",
+    "is_luxury_brand",
+    "is_manual",
+    "is_clean_title",
+    "has_accident",
+    "fuel_E85 Flex Fuel",
+    "fuel_Electric",
+    "fuel_Gasoline",
+    "fuel_Hybrid",
+    "fuel_Other",
+    "fuel_Plug-In Hybrid"
+  ],
+  "continuous_features": [
+    "car_age",
+    "milage",
+    "mileage_per_year"
+  ],
+  "train_means": {
+    "car_age": 10.526512788521522,
+    "milage": 65391.510917030566,
+    "mileage_per_year": 6030.198426063487
+  },
+  "train_stds": {
+    "car_age": 6.0992633097256315,
+    "milage": 52843.61568758339,
+    "mileage_per_year": 3813.2608855113494
+  },
+  "luxury_brands": [
+    "Porsche",
+    "Bugatti",
+    "Ferrari",
+    "Lamborghini",
+    "Rolls-Royce",
+    "Bentley",
+    "McLaren",
+    "Maserati",
+    "Aston Martin",
+    "BMW",
+    "Mercedes-Benz",
+    "Audi",
+    "Lexus",
+    "Jaguar",
+    "Cadillac",
+    "Lincoln",
+    "Genesis",
+    "INFINITI",
+    "Tesla",
+    "Land Rover",
+    "Alfa Romeo",
+    "Volvo"
+  ],
+  "valid_fuel_types": [
+    "Gasoline",
+    "Hybrid",
+    "Electric",
+    "E85 Flex Fuel",
+    "Diesel",
+    "Plug-In Hybrid",
+    "Other"
+  ]
+}
