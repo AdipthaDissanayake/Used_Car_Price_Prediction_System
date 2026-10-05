@@ -1,6 +1,7 @@
 """
 Database Management Module for Used Car Price Prediction System
 Supports MySQL via PyMySQL and built-in SQLite fallback (zero C-extension dependencies)
+Handles User Registration, Hashed Password Authentication, and User-Specific Prediction History.
 """
 
 import os
@@ -10,6 +11,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 import pymysql
 import pymysql.cursors
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Load environment variables
 load_dotenv()
@@ -21,7 +23,7 @@ DATABASE_URL = os.getenv(
 
 
 class DatabaseManager:
-    """Handles connection, migrations, user persistence, and prediction logging."""
+    """Handles connection, migrations, user persistence, auth, and prediction logging."""
 
     def __init__(self, db_url=None):
         self.db_url = db_url or DATABASE_URL
@@ -33,7 +35,6 @@ class DatabaseManager:
         url = self.db_url
         if url.startswith('mysql') or 'pymysql' in url:
             self.is_mysql = True
-            # Clean protocol prefix for urllib parsing
             clean_url = url.replace('mysql+pymysql://', 'mysql://')
             parsed = urllib.parse.urlparse(clean_url)
             self.config = {
@@ -64,7 +65,7 @@ class DatabaseManager:
             return sqlite3.connect(self.sqlite_path)
 
     def init_db(self):
-        """Create tables if they do not exist."""
+        """Create tables if they do not exist and apply migrations."""
         conn = self.get_connection()
         try:
             if self.is_mysql:
@@ -72,10 +73,9 @@ class DatabaseManager:
                     cur.execute("""
                         CREATE TABLE IF NOT EXISTS users (
                             id INT AUTO_INCREMENT PRIMARY KEY,
-                            google_id VARCHAR(255) NOT NULL UNIQUE,
                             email VARCHAR(255) NOT NULL UNIQUE,
+                            password_hash VARCHAR(255) NOT NULL,
                             name VARCHAR(255),
-                            picture VARCHAR(1024),
                             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                             last_login DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
                         );
@@ -83,7 +83,7 @@ class DatabaseManager:
                     cur.execute("""
                         CREATE TABLE IF NOT EXISTS prediction_logs (
                             id INT AUTO_INCREMENT PRIMARY KEY,
-                            user_id INT,
+                            user_id INT NOT NULL,
                             brand VARCHAR(100) NOT NULL,
                             model_year INT NOT NULL,
                             milage DOUBLE NOT NULL,
@@ -94,7 +94,7 @@ class DatabaseManager:
                             predicted_price DOUBLE NOT NULL,
                             log_price DOUBLE NOT NULL,
                             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+                            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
                         );
                     """)
                 print(f"[DB] Initialized MySQL database '{self.config.get('database')}'.")
@@ -103,10 +103,9 @@ class DatabaseManager:
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS users (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        google_id TEXT NOT NULL UNIQUE,
                         email TEXT NOT NULL UNIQUE,
+                        password_hash TEXT NOT NULL,
                         name TEXT,
-                        picture TEXT,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     );
@@ -114,7 +113,7 @@ class DatabaseManager:
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS prediction_logs (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        user_id INTEGER,
+                        user_id INTEGER NOT NULL,
                         brand TEXT NOT NULL,
                         model_year INTEGER NOT NULL,
                         milage REAL NOT NULL,
@@ -125,7 +124,7 @@ class DatabaseManager:
                         predicted_price REAL NOT NULL,
                         log_price REAL NOT NULL,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+                        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
                     );
                 """)
                 conn.commit()
@@ -133,55 +132,107 @@ class DatabaseManager:
         finally:
             conn.close()
 
-    def save_or_update_user(self, google_id, email, name=None, picture=None):
-        """Insert or update user record from Google Auth."""
+    def register_user(self, email, password, name=None):
+        """Register a user with hashed password."""
+        email = email.strip().lower()
+        conn = self.get_connection()
+        try:
+            pw_hash = generate_password_hash(password)
+            now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+            if self.is_mysql:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+                    if cur.fetchone():
+                        return None, "An account with this email address already exists."
+
+                    sql = """
+                        INSERT INTO users (email, password_hash, name, created_at, last_login)
+                        VALUES (%s, %s, %s, %s, %s)
+                    """
+                    cur.execute(sql, (email, pw_hash, name or email.split('@')[0], now, now))
+                    user_id = cur.lastrowid
+                    return {
+                        'id': user_id,
+                        'email': email,
+                        'name': name or email.split('@')[0],
+                        'created_at': now
+                    }, None
+            else:
+                conn.row_factory = sqlite3.Row
+                cur = conn.cursor()
+                cur.execute("SELECT id FROM users WHERE email = ?", (email,))
+                if cur.fetchone():
+                    return None, "An account with this email address already exists."
+
+                cur.execute("""
+                    INSERT INTO users (email, password_hash, name, created_at, last_login)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (email, pw_hash, name or email.split('@')[0], now, now))
+                conn.commit()
+                user_id = cur.lastrowid
+                return {
+                    'id': user_id,
+                    'email': email,
+                    'name': name or email.split('@')[0],
+                    'created_at': now
+                }, None
+        except Exception as e:
+            print(f"[DB Error] Registration failure: {e}")
+            return None, str(e)
+        finally:
+            conn.close()
+
+    def authenticate_user(self, email, password):
+        """Authenticate user with email and password."""
+        email = email.strip().lower()
         conn = self.get_connection()
         try:
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             if self.is_mysql:
                 with conn.cursor() as cur:
-                    sql = """
-                        INSERT INTO users (google_id, email, name, picture, created_at, last_login)
-                        VALUES (%s, %s, %s, %s, %s, %s)
-                        ON DUPLICATE KEY UPDATE
-                            name = VALUES(name),
-                            picture = VALUES(picture),
-                            last_login = VALUES(last_login);
-                    """
-                    cur.execute(sql, (google_id, email, name, picture, now, now))
-                    cur.execute("SELECT id, google_id, email, name, picture, created_at, last_login FROM users WHERE google_id = %s", (google_id,))
+                    cur.execute("SELECT id, email, password_hash, name, created_at, last_login FROM users WHERE email = %s", (email,))
                     row = cur.fetchone()
-                    if row and isinstance(row.get('created_at'), datetime):
+                    if not row or not row.get('password_hash'):
+                        return None, "Invalid email or password."
+
+                    if not check_password_hash(row['password_hash'], password):
+                        return None, "Invalid email or password."
+
+                    cur.execute("UPDATE users SET last_login = %s WHERE id = %s", (now, row['id']))
+                    del row['password_hash']
+                    if isinstance(row.get('created_at'), datetime):
                         row['created_at'] = row['created_at'].isoformat()
-                    if row and isinstance(row.get('last_login'), datetime):
+                    if isinstance(row.get('last_login'), datetime):
                         row['last_login'] = row['last_login'].isoformat()
-                    return row
+                    return row, None
             else:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
-                cur.execute("SELECT * FROM users WHERE google_id = ?", (google_id,))
-                user = cur.fetchone()
-                if not user:
-                    cur.execute("""
-                        INSERT INTO users (google_id, email, name, picture, created_at, last_login)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    """, (google_id, email, name, picture, now, now))
-                else:
-                    cur.execute("""
-                        UPDATE users SET name = ?, picture = ?, last_login = ? WHERE google_id = ?
-                    """, (name, picture, now, google_id))
-                conn.commit()
-                cur.execute("SELECT id, google_id, email, name, picture, created_at, last_login FROM users WHERE google_id = ?", (google_id,))
+                cur.execute("SELECT * FROM users WHERE email = ?", (email,))
                 row = cur.fetchone()
-                return dict(row) if row else None
+                if not row or not row['password_hash']:
+                    return None, "Invalid email or password."
+
+                if not check_password_hash(row['password_hash'], password):
+                    return None, "Invalid email or password."
+
+                cur.execute("UPDATE users SET last_login = ? WHERE id = ?", (now, row['id']))
+                conn.commit()
+                res = dict(row)
+                del res['password_hash']
+                return res, None
         except Exception as e:
-            print(f"[DB Error] Failed to save/update user: {e}")
-            return None
+            print(f"[DB Error] Authentication failure: {e}")
+            return None, str(e)
         finally:
             conn.close()
 
-    def log_prediction(self, payload, predicted_price, log_price, user_id=None):
-        """Save car prediction record."""
+    def log_prediction(self, payload, predicted_price, log_price, user_id):
+        """Save user-specific car prediction record."""
+        if not user_id:
+            return None
+
         conn = self.get_connection()
         try:
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -212,6 +263,10 @@ class DatabaseManager:
                         'brand': payload.get('brand'),
                         'model_year': payload.get('model_year'),
                         'milage': payload.get('milage'),
+                        'transmission': payload.get('transmission'),
+                        'clean_title': payload.get('clean_title'),
+                        'accident': payload.get('accident'),
+                        'fuel_type': payload.get('fuel_type'),
                         'predicted_price': round(float(predicted_price), 2),
                         'predicted_price_formatted': f"${float(predicted_price):,.2f}",
                         'created_at': now
@@ -244,6 +299,10 @@ class DatabaseManager:
                     'brand': payload.get('brand'),
                     'model_year': payload.get('model_year'),
                     'milage': payload.get('milage'),
+                    'transmission': payload.get('transmission'),
+                    'clean_title': payload.get('clean_title'),
+                    'accident': payload.get('accident'),
+                    'fuel_type': payload.get('fuel_type'),
                     'predicted_price': round(float(predicted_price), 2),
                     'predicted_price_formatted': f"${float(predicted_price):,.2f}",
                     'created_at': now
@@ -254,16 +313,19 @@ class DatabaseManager:
         finally:
             conn.close()
 
-    def get_recent_predictions(self, user_id=None, limit=10):
-        """Retrieve recent predictions, optionally filtered by user_id."""
+    def get_user_predictions(self, user_id, limit=20):
+        """Retrieve prediction history strictly for a specific user."""
+        if not user_id:
+            return []
+
         conn = self.get_connection()
         try:
             if self.is_mysql:
                 with conn.cursor() as cur:
-                    if user_id:
-                        cur.execute("SELECT * FROM prediction_logs WHERE user_id = %s ORDER BY id DESC LIMIT %s", (user_id, limit))
-                    else:
-                        cur.execute("SELECT * FROM prediction_logs ORDER BY id DESC LIMIT %s", (limit,))
+                    cur.execute(
+                        "SELECT * FROM prediction_logs WHERE user_id = %s ORDER BY id DESC LIMIT %s",
+                        (user_id, limit)
+                    )
                     rows = cur.fetchall()
                     for r in rows:
                         if isinstance(r.get('created_at'), datetime):
@@ -273,10 +335,10 @@ class DatabaseManager:
             else:
                 conn.row_factory = sqlite3.Row
                 cur = conn.cursor()
-                if user_id:
-                    cur.execute("SELECT * FROM prediction_logs WHERE user_id = ? ORDER BY id DESC LIMIT ?", (user_id, limit))
-                else:
-                    cur.execute("SELECT * FROM prediction_logs ORDER BY id DESC LIMIT ?", (limit,))
+                cur.execute(
+                    "SELECT * FROM prediction_logs WHERE user_id = ? ORDER BY id DESC LIMIT ?",
+                    (user_id, limit)
+                )
                 rows = [dict(r) for r in cur.fetchall()]
                 for r in rows:
                     r['predicted_price_formatted'] = f"${r['predicted_price']:,.2f}"
@@ -284,6 +346,50 @@ class DatabaseManager:
         except Exception as e:
             print(f"[DB Error] Failed to fetch prediction history: {e}")
             return []
+        finally:
+            conn.close()
+
+    def delete_prediction_log(self, log_id, user_id):
+        """Delete an individual prediction log strictly owned by user_id."""
+        conn = self.get_connection()
+        try:
+            if self.is_mysql:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "DELETE FROM prediction_logs WHERE id = %s AND user_id = %s",
+                        (log_id, user_id)
+                    )
+                    return cur.rowcount > 0
+            else:
+                cur = conn.cursor()
+                cur.execute(
+                    "DELETE FROM prediction_logs WHERE id = ? AND user_id = ?",
+                    (log_id, user_id)
+                )
+                conn.commit()
+                return cur.rowcount > 0
+        except Exception as e:
+            print(f"[DB Error] Failed to delete prediction: {e}")
+            return False
+        finally:
+            conn.close()
+
+    def clear_user_predictions(self, user_id):
+        """Delete all prediction history for a specific user."""
+        conn = self.get_connection()
+        try:
+            if self.is_mysql:
+                with conn.cursor() as cur:
+                    cur.execute("DELETE FROM prediction_logs WHERE user_id = %s", (user_id,))
+                    return cur.rowcount
+            else:
+                cur = conn.cursor()
+                cur.execute("DELETE FROM prediction_logs WHERE user_id = ?", (user_id,))
+                conn.commit()
+                return cur.rowcount
+        except Exception as e:
+            print(f"[DB Error] Failed to clear history: {e}")
+            return 0
         finally:
             conn.close()
 

@@ -99,25 +99,74 @@ def test_predict_missing_fields(client):
     assert res.status_code == 400
 
 
-def test_google_auth_endpoint(client):
-    auth_payload = {
-        'user': {
-            'sub': 'google_test_sub_999',
-            'email': 'driver@test.com',
-            'name': 'Test Driver',
-            'picture': 'https://example.com/driver.png'
-        }
+def test_normal_user_register_and_login(client):
+    unique_email = "testrunner_user@it3051.org"
+    # Register
+    reg_payload = {
+        'name': 'Test Runner',
+        'email': unique_email,
+        'password': 'securepassword123'
     }
-    res = client.post('/api/auth/google', data=json.dumps(auth_payload), content_type='application/json')
-    assert res.status_code == 200
-    data = res.get_json()
+    res_reg = client.post('/api/auth/register', data=json.dumps(reg_payload), content_type='application/json')
+    assert res_reg.status_code in (201, 400)
+
+    # Login
+    login_payload = {
+        'email': unique_email,
+        'password': 'securepassword123'
+    }
+    res_login = client.post('/api/auth/login', data=json.dumps(login_payload), content_type='application/json')
+    assert res_login.status_code == 200
+    data = res_login.get_json()
     assert data['status'] == 'success'
-    assert data['user']['email'] == 'driver@test.com'
+    assert 'token' in data
+    assert data['user']['email'] == unique_email
+
+    # Wrong password test
+    bad_login = client.post('/api/auth/login', data=json.dumps({'email': unique_email, 'password': 'wrong'}), content_type='application/json')
+    assert bad_login.status_code == 401
 
 
-def test_prediction_history_endpoint(client):
-    res = client.get('/api/predictions/history?limit=5')
-    assert res.status_code == 200
-    data = res.get_json()
-    assert data['status'] == 'success'
-    assert 'data' in data
+def test_user_history_and_deletion(client):
+    # 1. Login user to get token
+    login_res = client.post('/api/auth/login', data=json.dumps({
+        'email': 'testrunner_user@it3051.org',
+        'password': 'securepassword123'
+    }), content_type='application/json')
+    token = login_res.get_json()['token']
+    auth_headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+
+    # 2. Make prediction under this user
+    car_payload = {
+        'brand': 'BMW',
+        'model_year': 2022,
+        'milage': 25000,
+        'transmission': 'Automatic',
+        'clean_title': 'Yes',
+        'accident': 'None reported',
+        'fuel_type': 'Gasoline'
+    }
+    pred_res = client.post('/predict', data=json.dumps(car_payload), headers=auth_headers)
+    assert pred_res.status_code == 200
+    log_id = pred_res.get_json()['data'].get('log_id')
+    assert log_id is not None
+
+    # 3. Query user history
+    hist_res = client.get('/api/predictions/history', headers=auth_headers)
+    assert hist_res.status_code == 200
+    history = hist_res.get_json()['data']
+    assert any(h['id'] == log_id for h in history)
+
+    # 4. Delete single prediction
+    del_res = client.delete(f'/api/predictions/history/{log_id}', headers=auth_headers)
+    assert del_res.status_code == 200
+
+    # Verify deleted
+    hist_after = client.get('/api/predictions/history', headers=auth_headers).get_json()['data']
+    assert not any(h['id'] == log_id for h in hist_after)
+
+    # 5. Clear all history test
+    clear_res = client.delete('/api/predictions/history', headers=auth_headers)
+    assert clear_res.status_code == 200
+    hist_empty = client.get('/api/predictions/history', headers=auth_headers).get_json()['data']
+    assert len(hist_empty) == 0

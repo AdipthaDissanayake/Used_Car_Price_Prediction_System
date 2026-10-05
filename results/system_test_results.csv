@@ -1,23 +1,23 @@
 test_module,test_case,description,status,executed_at
-tests/test_preprocessing.py,test_split_dimensions,Validates 80/20 train/test split (3206 / 802 rows) and 13 features,PASSED,2026-10-05 13:55:44
-tests/test_preprocessing.py,test_no_missing_values,Asserts zero missing values in train and test sets,PASSED,2026-10-05 13:55:44
-tests/test_preprocessing.py,test_feature_columns_exact_match,Validates feature names and verifies target exclusion from X,PASSED,2026-10-05 13:55:44
-tests/test_preprocessing.py,test_leakage_prevention,"Validates standardization fitted strictly on training data (mean=0, std=1)",PASSED,2026-10-05 13:55:44
-tests/test_preprocessing.py,test_preprocessor_single_transform,Validates single raw user dictionary transformation pipeline,PASSED,2026-10-05 13:55:44
-tests/test_models.py,test_final_model_artifact_exists,Asserts champion model joblib exists on disk,PASSED,2026-10-05 13:55:44
-tests/test_models.py,test_champion_model_performance,Asserts Champion Model achieves Test R2 > 0.65 and valid USD predictions,PASSED,2026-10-05 13:55:44
-tests/test_models.py,test_all_saved_models_predict[linear_regression],Verifies Linear Regression artifact loads and evaluates (R2 >= 0.58),PASSED,2026-10-05 13:55:44
-tests/test_models.py,test_all_saved_models_predict[decision_tree],Verifies Decision Tree artifact loads and evaluates (R2 >= 0.60),PASSED,2026-10-05 13:55:44
-tests/test_models.py,test_all_saved_models_predict[random_forest],Verifies Random Forest artifact loads and evaluates (R2 >= 0.64),PASSED,2026-10-05 13:55:44
-tests/test_models.py,test_all_saved_models_predict[gradient_boosting],Verifies Gradient Boosting artifact loads and evaluates (R2 >= 0.65),PASSED,2026-10-05 13:55:44
-tests/test_backend.py,test_health_endpoint,GET /health endpoint returns HTTP 200 and healthy status with DB info,PASSED,2026-10-05 13:55:44
-tests/test_backend.py,test_metadata_endpoint,"GET /metadata endpoint returns HTTP 200 with brand, fuel, and Google Client ID",PASSED,2026-10-05 13:55:44
-tests/test_backend.py,test_predict_valid_payload,POST /predict returns HTTP 200 with valid formatted price and intervals,PASSED,2026-10-05 13:55:44
-tests/test_backend.py,test_predict_invalid_year_out_of_range,POST /predict with invalid year (1850) returns HTTP 422,PASSED,2026-10-05 13:55:44
-tests/test_backend.py,test_predict_negative_mileage,POST /predict with negative mileage returns HTTP 422,PASSED,2026-10-05 13:55:44
-tests/test_backend.py,test_predict_missing_fields,POST /predict with missing required fields returns HTTP 400,PASSED,2026-10-05 13:55:44
-tests/test_backend.py,test_google_auth_endpoint,POST /api/auth/google registers user and persists to MySQL,PASSED,2026-10-05 13:55:44
-tests/test_backend.py,test_prediction_history_endpoint,GET /api/predictions/history queries MySQL prediction records,PASSED,2026-10-05 13:55:44
-tests/test_end_to_end.py,test_end_to_end_luxury_vs_economy,Validates luxury brand predicts higher price than economy (equal age/miles),PASSED,2026-10-05 13:55:44
-tests/test_end_to_end.py,test_end_to_end_mileage_depreciation,Validates low mileage vehicle values higher than high mileage vehicle,PASSED,2026-10-05 13:55:44
-tests/test_end_to_end.py,test_end_to_end_accident_impact,Validates clean title predicts higher price than damaged title,PASSED,2026-10-05 13:55:44
+tests/test_preprocessing.py,test_split_dimensions,Validates 80/20 train/test split (3206 / 802 rows) and 13 features,PASSED,2026-10-05 15:06:13
+tests/test_preprocessing.py,test_no_missing_values,Asserts zero missing values in train and test sets,PASSED,2026-10-05 15:06:13
+tests/test_preprocessing.py,test_feature_columns_exact_match,Validates feature names and verifies target exclusion from X,PASSED,2026-10-05 15:06:13
+tests/test_preprocessing.py,test_leakage_prevention,"Validates standardization fitted strictly on training data (mean=0, std=1)",PASSED,2026-10-05 15:06:13
+tests/test_preprocessing.py,test_preprocessor_single_transform,Validates single raw user dictionary transformation pipeline,PASSED,2026-10-05 15:06:13
+tests/test_models.py,test_final_model_artifact_exists,Asserts champion model joblib exists on disk,PASSED,2026-10-05 15:06:13
+tests/test_models.py,test_champion_model_performance,Asserts Champion Model achieves Test R2 > 0.65 and valid USD predictions,PASSED,2026-10-05 15:06:13
+tests/test_models.py,test_all_saved_models_predict[linear_regression],Verifies Linear Regression artifact loads and evaluates (R2 >= 0.58),PASSED,2026-10-05 15:06:13
+tests/test_models.py,test_all_saved_models_predict[decision_tree],Verifies Decision Tree artifact loads and evaluates (R2 >= 0.60),PASSED,2026-10-05 15:06:13
+tests/test_models.py,test_all_saved_models_predict[random_forest],Verifies Random Forest artifact loads and evaluates (R2 >= 0.64),PASSED,2026-10-05 15:06:13
+tests/test_models.py,test_all_saved_models_predict[gradient_boosting],Verifies Gradient Boosting artifact loads and evaluates (R2 >= 0.65),PASSED,2026-10-05 15:06:13
+tests/test_backend.py,test_health_endpoint,GET /health endpoint returns HTTP 200 and healthy status with DB and JWT info,PASSED,2026-10-05 15:06:13
+tests/test_backend.py,test_metadata_endpoint,GET /metadata endpoint returns HTTP 200 with brand and fuel metadata,PASSED,2026-10-05 15:06:13
+tests/test_backend.py,test_predict_valid_payload,POST /predict returns HTTP 200 with valid formatted price and intervals,PASSED,2026-10-05 15:06:13
+tests/test_backend.py,test_predict_invalid_year_out_of_range,POST /predict with invalid year (1850) returns HTTP 422,PASSED,2026-10-05 15:06:13
+tests/test_backend.py,test_predict_negative_mileage,POST /predict with negative mileage returns HTTP 422,PASSED,2026-10-05 15:06:13
+tests/test_backend.py,test_predict_missing_fields,POST /predict with missing required fields returns HTTP 400,PASSED,2026-10-05 15:06:13
+tests/test_backend.py,test_normal_user_register_and_login,POST /api/auth/register and /api/auth/login validates password hash and JWT session,PASSED,2026-10-05 15:06:13
+tests/test_backend.py,test_user_history_and_deletion,"Validates user-specific prediction logging, query, single deletion, and clear all in MySQL",PASSED,2026-10-05 15:06:13
+tests/test_end_to_end.py,test_end_to_end_luxury_vs_economy,Validates luxury brand predicts higher price than economy (equal age/miles),PASSED,2026-10-05 15:06:13
+tests/test_end_to_end.py,test_end_to_end_mileage_depreciation,Validates low mileage vehicle values higher than high mileage vehicle,PASSED,2026-10-05 15:06:13
+tests/test_end_to_end.py,test_end_to_end_accident_impact,Validates clean title predicts higher price than damaged title,PASSED,2026-10-05 15:06:13
