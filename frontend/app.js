@@ -146,7 +146,7 @@ async function loadUserHistory() {
                     </div>
                     <div class="history-side-actions">
                         <span class="history-price-tag">${item.predicted_price_formatted}</span>
-                        <button type="button" class="btn-load-specs" title="Load into parameters form">Load Specs</button>
+                        <button type="button" class="btn-load-specs" title="Use these car details">Use Details</button>
                         <button type="button" class="btn-delete-row" title="Delete record">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="3 6 5 6 21 6"/>
@@ -158,7 +158,7 @@ async function loadUserHistory() {
                     </div>
                 `;
 
-                // Handle Load Specs click
+                // Handle Use Details click
                 card.querySelector('.btn-load-specs').addEventListener('click', () => {
                     populateFormWithSpecs(item);
                 });
@@ -257,7 +257,7 @@ function updateLiveHelpers() {
         if (!isNaN(milage) && age >= 0) {
             const effectiveAge = age > 0 ? age : 1;
             const rate = Math.round(milage / effectiveAge);
-            ratePill.textContent = `Usage Rate: ~${rate.toLocaleString()} mi/yr`;
+            ratePill.textContent = `Average: ~${rate.toLocaleString()} miles/year`;
         }
     }
 }
@@ -465,7 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Loading State
         predictBtn.disabled = true;
-        predictBtnText.textContent = 'Processing Valuation Pipeline...';
+        predictBtnText.textContent = 'Calculating estimated price...';
         predictBtnSpinner.style.display = 'inline-block';
 
         try {
@@ -490,9 +490,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const integerPrice = Math.round(pred.predicted_price).toLocaleString();
             document.getElementById('val-price').textContent = integerPrice;
             document.getElementById('val-range').textContent = pred.price_range_90_pct.formatted;
-            document.getElementById('val-model-name').textContent = pred.model_used;
-            document.getElementById('val-r2').textContent = (pred.model_test_r2 || 0.6619).toFixed(4);
-            document.getElementById('val-log-price').textContent = pred.log_price.toFixed(4);
+            document.getElementById('val-model-name').textContent = "Market Pattern Match";
+            document.getElementById('val-r2').textContent = "High (66% Fit)";
+            
+            // Friendly Market Category
+            const luxuryBrands = ['Porsche', 'BMW', 'Mercedes-Benz', 'Audi', 'Lexus', 'Land Rover', 'Cadillac', 'Tesla', 'Genesis', 'Volvo', 'Jaguar', 'Maserati', 'Bentley', 'Ferrari', 'Lamborghini'];
+            const isLuxury = luxuryBrands.includes(payload.brand);
+            const categoryEl = document.getElementById('val-category');
+            if (categoryEl) {
+                categoryEl.textContent = isLuxury ? "Luxury Tier" : "Mainstream Tier";
+            }
+            
             document.getElementById('val-timestamp').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             // Insights list
@@ -517,11 +525,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } catch (err) {
-            formAlert.textContent = err.message || "Inference error occurred.";
+            formAlert.textContent = err.message || "Unable to calculate price. Please check inputs and try again.";
             formAlert.style.display = 'block';
         } finally {
             predictBtn.disabled = false;
-            predictBtnText.textContent = 'Compute Market Valuation';
+            predictBtnText.textContent = 'Estimate Market Price';
             predictBtnSpinner.style.display = 'none';
         }
     });
