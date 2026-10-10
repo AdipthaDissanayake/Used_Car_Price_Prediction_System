@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoValuate ML | Professional Used Car Price Prediction System</title>
+    <title>AutoValuate | Used Car Price Prediction System</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="app-layout">
-        <!-- Top Enterprise Navigation Bar -->
+        <!-- Top Navigation Bar -->
         <header class="navbar">
             <div class="nav-container">
                 <div class="nav-left">
@@ -21,13 +21,13 @@
                             <circle cx="17" cy="17" r="2"/>
                         </svg>
                         <div class="brand-text">
-                            <span class="brand-title">AutoValuate<span class="brand-accent">.AI</span></span>
-                            <span class="brand-subtitle">Enterprise Price Intelligence</span>
+                            <span class="brand-title">AutoValuate</span>
+                            <span class="brand-subtitle">Used Car Price Estimator</span>
                         </div>
                     </div>
                     <div class="system-status-pill">
                         <span class="status-indicator"></span>
-                        <span class="status-label">Model v2.0 • Gradient Boosting (R² 0.6619)</span>
+                        <span class="status-label">Valuation Engine Ready</span>
                     </div>
                 </div>
 
@@ -61,12 +61,12 @@
         <main class="dashboard-container">
             <div class="dashboard-grid">
                 
-                <!-- Left Column: Vehicle Configuration Console -->
+                <!-- Left Column: Vehicle Details Form -->
                 <section class="console-card">
                     <div class="card-header-bar">
                         <div class="header-titles">
-                            <h2>Vehicle Parameters</h2>
-                            <p>Configure technical specifications for machine learning valuation</p>
+                            <h2>Car Details</h2>
+                            <p>Enter the car's information below to get an estimated market value</p>
                         </div>
                         <button type="button" id="btn-reset-form" class="btn-ghost-sm" title="Reset all fields">Reset</button>
                     </div>
@@ -76,15 +76,15 @@
                         <div class="form-section">
                             <div class="section-label">
                                 <span class="section-number">01</span>
-                                <span>Vehicle Identity</span>
+                                <span>Car Information</span>
                             </div>
 
                             <div class="form-row">
                                 <div class="form-field">
-                                    <label for="brand">Manufacturer / Make <span class="req">*</span></label>
+                                    <label for="brand">Car Brand / Make <span class="req">*</span></label>
                                     <select id="brand" name="brand" class="form-input" required>
-                                        <option value="" disabled selected>Select Make</option>
-                                        <optgroup label="Luxury & Prestige Tier">
+                                        <option value="" disabled selected>Select Brand</option>
+                                        <optgroup label="Luxury Brands">
                                             <option value="Porsche">Porsche</option>
                                             <option value="BMW">BMW</option>
                                             <option value="Mercedes-Benz">Mercedes-Benz</option>
@@ -101,7 +101,7 @@
                                             <option value="Ferrari">Ferrari</option>
                                             <option value="Lamborghini">Lamborghini</option>
                                         </optgroup>
-                                        <optgroup label="Mainstream Market Tier">
+                                        <optgroup label="Popular Brands">
                                             <option value="Toyota">Toyota</option>
                                             <option value="Ford">Ford</option>
                                             <option value="Chevrolet">Chevrolet</option>
@@ -122,7 +122,7 @@
                                 </div>
 
                                 <div class="form-field">
-                                    <label for="model_year">Model Year <span class="req">*</span></label>
+                                    <label for="model_year">Year of Manufacture <span class="req">*</span></label>
                                     <input type="number" id="model_year" name="model_year" class="form-input" min="1990" max="2026" value="2021" required>
                                     <div class="dynamic-pill-row">
                                         <span class="mini-tag" id="pill-car-age">Age: 5 years</span>
@@ -132,15 +132,15 @@
                             </div>
                         </div>
 
-                        <!-- Section 2: Mileage & Usage Intensity -->
+                        <!-- Section 2: Mileage -->
                         <div class="form-section">
                             <div class="section-label">
                                 <span class="section-number">02</span>
-                                <span>Odometer & Usage</span>
+                                <span>Mileage</span>
                             </div>
 
                             <div class="form-field">
-                                <label for="milage">Odometer Reading (Miles) <span class="req">*</span></label>
+                                <label for="milage">Current Mileage <span class="req">*</span></label>
                                 <div class="input-with-affix">
                                     <input type="number" id="milage" name="milage" class="form-input" min="0" max="1000000" step="500" value="38000" required>
                                     <span class="affix-badge">MILES</span>
@@ -154,25 +154,25 @@
                                     <button type="button" class="preset-btn" data-miles="100000">100,000</button>
                                 </div>
                                 <div class="dynamic-pill-row">
-                                    <span class="mini-tag" id="pill-mileage-rate">Usage Rate: ~7,600 mi/yr</span>
+                                    <span class="mini-tag" id="pill-mileage-rate">Average Driving: ~7,600 miles/year</span>
                                 </div>
                                 <span class="field-hint" id="error-milage"></span>
                             </div>
                         </div>
 
-                        <!-- Section 3: Drivetrain & Fuel -->
+                        <!-- Section 3: Transmission & Fuel -->
                         <div class="form-section">
                             <div class="section-label">
                                 <span class="section-number">03</span>
-                                <span>Drivetrain & Fuel</span>
+                                <span>Transmission & Fuel</span>
                             </div>
 
                             <div class="form-row">
                                 <div class="form-field">
                                     <label for="transmission">Transmission <span class="req">*</span></label>
                                     <select id="transmission" name="transmission" class="form-input" required>
-                                        <option value="Automatic" selected>Automatic / Steptronic</option>
-                                        <option value="Manual">Manual / 6-Speed M/T</option>
+                                        <option value="Automatic" selected>Automatic</option>
+                                        <option value="Manual">Manual</option>
                                     </select>
                                     <span class="field-hint" id="error-transmission"></span>
                                 </div>
@@ -181,31 +181,31 @@
                                     <label for="fuel_type">Fuel Type <span class="req">*</span></label>
                                     <select id="fuel_type" name="fuel_type" class="form-input" required>
                                         <option value="Gasoline" selected>Gasoline</option>
-                                        <option value="Hybrid">Hybrid (HEV)</option>
-                                        <option value="Electric">Battery Electric (BEV)</option>
-                                        <option value="Plug-In Hybrid">Plug-In Hybrid (PHEV)</option>
+                                        <option value="Hybrid">Hybrid</option>
+                                        <option value="Electric">Electric</option>
+                                        <option value="Plug-In Hybrid">Plug-In Hybrid</option>
                                         <option value="Diesel">Diesel</option>
-                                        <option value="E85 Flex Fuel">E85 Flex Fuel</option>
-                                        <option value="Other">Other / Alternative</option>
+                                        <option value="E85 Flex Fuel">Flex Fuel</option>
+                                        <option value="Other">Other</option>
                                     </select>
                                     <span class="field-hint" id="error-fuel_type"></span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Section 4: History & Condition -->
+                        <!-- Section 4: Condition & History -->
                         <div class="form-section">
                             <div class="section-label">
                                 <span class="section-number">04</span>
-                                <span>Condition & Title Verification</span>
+                                <span>Title & Accident History</span>
                             </div>
 
                             <div class="form-row">
                                 <div class="form-field">
-                                    <label for="clean_title">Title State <span class="req">*</span></label>
+                                    <label for="clean_title">Vehicle Title Status <span class="req">*</span></label>
                                     <select id="clean_title" name="clean_title" class="form-input" required>
-                                        <option value="Yes" selected>Clean Title (Verified)</option>
-                                        <option value="No">Non-Clean / Rebuilt / Salvage</option>
+                                        <option value="Yes" selected>Clean Title (Normal)</option>
+                                        <option value="No">Salvage / Rebuilt Title</option>
                                     </select>
                                     <span class="field-hint" id="error-clean_title"></span>
                                 </div>
@@ -214,7 +214,7 @@
                                     <label for="accident">Accident History <span class="req">*</span></label>
                                     <select id="accident" name="accident" class="form-input" required>
                                         <option value="None reported" selected>No Accidents Reported</option>
-                                        <option value="At least 1 accident or damage reported">Reported Accident / Damage</option>
+                                        <option value="At least 1 accident or damage reported">Accident or Damage Reported</option>
                                     </select>
                                     <span class="field-hint" id="error-accident"></span>
                                 </div>
@@ -227,16 +227,16 @@
                         <!-- Action Submit -->
                         <div class="form-submit-row">
                             <button type="submit" id="btn-predict-submit" class="btn btn-primary-lg">
-                                <span class="btn-text">Compute Market Valuation</span>
+                                <span class="btn-text">Estimate Market Price</span>
                                 <span class="btn-spinner" style="display: none;"></span>
                             </button>
                         </div>
                     </form>
                 </section>
 
-                <!-- Right Column: Analytics & Live Valuation Display -->
+                <!-- Right Column: Valuation Results & History -->
                 <div class="results-column">
-                    <!-- Valuation Hero Card -->
+                    <!-- Valuation Result Card -->
                     <section class="valuation-card" id="valuation-card">
                         <div class="valuation-empty-state" id="val-empty-state">
                             <div class="radar-scan-icon">
@@ -247,14 +247,14 @@
                                     <line x1="12" y1="12" x2="19" y2="5"/>
                                 </svg>
                             </div>
-                            <h3>Valuation Engine Ready</h3>
-                            <p>Select vehicle parameters and trigger the machine learning inference pipeline to generate real-time market value.</p>
+                            <h3>Ready to Value Your Car</h3>
+                            <p>Fill in the car details on the left and click "Estimate Market Price" to get an instant market valuation.</p>
                         </div>
 
                         <!-- Valuation Result State -->
                         <div class="valuation-active-state" id="val-active-state" style="display: none;">
                             <div class="valuation-header">
-                                <span class="badge-ml">ML Prediction Output</span>
+                                <span class="badge-ml">Estimated Market Value</span>
                                 <span class="timestamp-label" id="val-timestamp">Just now</span>
                             </div>
 
@@ -264,10 +264,10 @@
                                 <span class="currency-code">USD</span>
                             </div>
 
-                            <!-- 90% Confidence Interval Bar -->
+                            <!-- Recommended Price Range -->
                             <div class="confidence-bar-container">
                                 <div class="confidence-labels">
-                                    <span class="conf-title">90% Statistical Valuation Band</span>
+                                    <span class="conf-title">Recommended Price Range</span>
                                     <span class="conf-range" id="val-range">$0 – $0</span>
                                 </div>
                                 <div class="conf-meter">
@@ -275,25 +275,25 @@
                                 </div>
                             </div>
 
-                            <!-- Model Metrics Row -->
+                            <!-- Simplified Summary Strip -->
                             <div class="metric-stats-strip">
                                 <div class="stat-cell">
-                                    <span class="stat-name">Model</span>
-                                    <strong class="stat-value" id="val-model-name">Gradient Boosting</strong>
+                                    <span class="stat-name">Pricing Engine</span>
+                                    <strong class="stat-value" id="val-model-name">Market Pattern Matching</strong>
                                 </div>
                                 <div class="stat-cell">
-                                    <span class="stat-name">Test R² Score</span>
-                                    <strong class="stat-value highlight-green" id="val-r2">0.6619</strong>
+                                    <span class="stat-name">Accuracy Level</span>
+                                    <strong class="stat-value highlight-green" id="val-r2">High (66% Market Match)</strong>
                                 </div>
                                 <div class="stat-cell">
-                                    <span class="stat-name">Log Transformed</span>
-                                    <strong class="stat-value font-mono" id="val-log-price">10.65</strong>
+                                    <span class="stat-name">Vehicle Tier</span>
+                                    <strong class="stat-value" id="val-category">Standard Market</strong>
                                 </div>
                             </div>
 
                             <!-- Value Drivers Analysis -->
                             <div class="drivers-box">
-                                <h4 class="drivers-title">Valuation Value Drivers</h4>
+                                <h4 class="drivers-title">Key Factors Affecting This Valuation</h4>
                                 <ul class="drivers-list" id="val-insights-list">
                                     <!-- Populated dynamically -->
                                 </ul>
@@ -305,7 +305,7 @@
                     <section class="history-card">
                         <div class="history-card-header">
                             <div class="history-title-group">
-                                <h3>Valuation History</h3>
+                                <h3>Your Past Valuations</h3>
                                 <span class="history-count-badge" id="history-count">0 records</span>
                             </div>
                             <div class="history-actions" id="history-actions" style="display: none;">
@@ -319,14 +319,14 @@
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                             </svg>
-                            <p><strong>Sign in to save your history.</strong> Valuations are automatically stored and synced to your account in MySQL.</p>
+                            <p><strong>Sign in to save your valuations.</strong> Past estimates are automatically saved to your private account so you can view them anytime.</p>
                             <button type="button" id="btn-prompt-login" class="btn btn-secondary-sm">Sign In / Register</button>
                         </div>
 
                         <!-- Logged In History List -->
                         <div class="history-scroll-list" id="history-scroll-list" style="display: none;">
                             <div class="history-empty-message" id="history-empty-msg">
-                                No past valuations found for this account.
+                                No saved valuations yet. Estimated cars will appear here.
                             </div>
                             <div class="history-items-container" id="history-items-container">
                                 <!-- Populated dynamically -->
@@ -338,7 +338,7 @@
             </div>
         </main>
 
-        <!-- Modern Authentication Modal -->
+        <!-- Authentication Modal -->
         <div id="auth-modal" class="modal-backdrop" style="display: none;">
             <div class="modal-window">
                 <div class="modal-top">
@@ -346,7 +346,7 @@
                         <button type="button" id="tab-login" class="auth-tab active">Sign In</button>
                         <button type="button" id="tab-register" class="auth-tab">Create Account</button>
                     </div>
-                    <button type="button" id="btn-close-modal" class="modal-close-icon" title="Close modal">&times;</button>
+                    <button type="button" id="btn-close-modal" class="modal-close-icon" title="Close window">&times;</button>
                 </div>
 
                 <div class="modal-body">
@@ -356,7 +356,7 @@
                     <form id="modal-login-form">
                         <div class="modal-field">
                             <label for="input-login-email">Email Address</label>
-                            <input type="email" id="input-login-email" class="form-input" placeholder="you@company.com" required>
+                            <input type="email" id="input-login-email" class="form-input" placeholder="you@domain.com" required>
                         </div>
                         <div class="modal-field">
                             <label for="input-login-password">Password</label>
@@ -372,14 +372,14 @@
                     <form id="modal-register-form" style="display: none;">
                         <div class="modal-field">
                             <label for="input-reg-name">Full Name</label>
-                            <input type="text" id="input-reg-name" class="form-input" placeholder="Alex Morgan">
+                            <input type="text" id="input-reg-name" class="form-input" placeholder="Your Name">
                         </div>
                         <div class="modal-field">
                             <label for="input-reg-email">Email Address</label>
-                            <input type="email" id="input-reg-email" class="form-input" placeholder="you@company.com" required>
+                            <input type="email" id="input-reg-email" class="form-input" placeholder="you@domain.com" required>
                         </div>
                         <div class="modal-field">
-                            <label for="input-reg-password">Password (min. 6 characters)</label>
+                            <label for="input-reg-password">Password (minimum 6 characters)</label>
                             <input type="password" id="input-reg-password" class="form-input" placeholder="••••••••" required minlength="6">
                         </div>
                         <button type="submit" id="btn-submit-register" class="btn btn-primary-block">
@@ -391,14 +391,14 @@
             </div>
         </div>
 
-        <!-- Enterprise Footer -->
+        <!-- Clean Footer -->
         <footer class="app-footer">
             <div class="footer-inner">
-                <span>IT3051 Fundamentals of Data Mining & Machine Learning • Mini Project 2026</span>
+                <span>Used Car Price Prediction System</span>
                 <span class="footer-sep">•</span>
-                <span>Trained on 4,000+ Verified Market Transactions</span>
+                <span>Based on 4,000+ Verified Market Transactions</span>
                 <span class="footer-sep">•</span>
-                <span class="db-tag">MySQL Engine: <code>used_car_price_db</code></span>
+                <span class="db-tag">Secure Account Storage</span>
             </div>
         </footer>
     </div>
